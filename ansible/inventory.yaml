@@ -1,0 +1,7 @@
+---
+all:
+  children:
+    firewalls:
+      hosts:
+        dallas-vfw-01:
+          ansible_host: "dallas-vfw-01.redtail.com"

@@ -1,0 +1,56 @@
+---
+- name: Create Address Object and place it in the appropriate grouping
+  hosts: all
+  gather_facts: false
+  connection: local
+  collections:
+    - paloaltonetworks.panos
+
+  tasks:
+    - name: Create the address object
+      panos_address_object:
+        provider:
+          api_key: "{{ api_key }}"
+          ip_address: "{{ ansible_host }}"
+        name: "{{ address_object_name }}"
+        value: "{{ address_object_value }}"
+        description: "{{ address_object_description }}"
+        tag: ["Automation"]
+
+    - name: Grab current config of "Wu-Tang" address group
+      panos_address_group:
+        provider:
+          api_key: "{{ api_key }}"
+          ip_address: "{{ ansible_host }}"
+        name: "Wu-Tang"
+        state: "gathered"
+      register: "address_group"
+
+    # - name: print "address_group" to screen
+    #   debug:
+    #     msg: "{{ address_group }}"
+
+    - name: create a new variable called "existing_entries"
+      set_fact:
+        existing_entries: '{{ address_group["gathered"]["static_value"] }}'
+
+    # - name: print "existing_entries" to screen
+    #   debug:
+    #     msg: "{{ existing_entries }}"
+
+    - name: create a new variable called "desired_entries"
+      set_fact:
+        desired_entries: "{{ existing_entries + [address_object_name] }}"
+
+    # - name: print "desired_entries" to screen
+    #   debug:
+    #     msg: "{{ desired_entries }}"
+
+    - name: Update group Wu-Tang with 'Old Dirty Address Object'
+      panos_address_group:
+        provider:
+          api_key: "{{ api_key }}"
+          ip_address: "{{ ansible_host }}"
+        name: "Wu-Tang"
+        static_value: "{{ desired_entries }}"
+        tag: ["Automation"]
